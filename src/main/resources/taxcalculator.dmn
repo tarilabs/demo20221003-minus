@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dmn:definitions xmlns:dmn="http://www.omg.org/spec/DMN/20180521/MODEL/" xmlns="https://kiegroup.org/dmn/_077A2922-96AE-4811-92AA-A3777C8FCA8F" xmlns:feel="http://www.omg.org/spec/DMN/20180521/FEEL/" xmlns:kie="http://www.drools.org/kie/dmn/1.2" xmlns:dmndi="http://www.omg.org/spec/DMN/20180521/DMNDI/" xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" id="_CCC991E3-BBE7-4D06-BF80-45D835286102" name="taxcalculator" typeLanguage="http://www.omg.org/spec/DMN/20180521/FEEL/" namespace="https://kiegroup.org/dmn/_077A2922-96AE-4811-92AA-A3777C8FCA8F">
+  <dmn:extensionElements/>
+  <dmn:itemDefinition id="_EA8C9D20-FC96-4AE4-871C-AAFF5A54F87E" name="tLineItem" isCollection="false">
+    <dmn:itemComponent id="_E4BE044C-8C88-45A3-853F-B1571CE9D7F9" name="type" isCollection="false">
+      <dmn:typeRef>string</dmn:typeRef>
+      <dmn:allowedValues kie:constraintType="enumeration" id="_328A3285-CEBB-4998-B2E9-86781730BD74">
+        <dmn:text>"Stock", "Bond", "Gov Bond", "ETF"</dmn:text>
+      </dmn:allowedValues>
+    </dmn:itemComponent>
+    <dmn:itemComponent id="_75D25E1B-7DBB-4875-BBF3-2ADFB56FC23B" name="entry" isCollection="false">
+      <dmn:typeRef>number</dmn:typeRef>
+    </dmn:itemComponent>
+    <dmn:itemComponent id="_E3C4AC2A-720C-4BD4-9CC3-7D46C724369F" name="exit" isCollection="false">
+      <dmn:typeRef>number</dmn:typeRef>
+    </dmn:itemComponent>
+    <dmn:itemComponent id="_0A3241D4-3D21-4DF9-B16E-2DDB9C4F3FE4" name="tax" isCollection="false">
+      <dmn:typeRef>number</dmn:typeRef>
+    </dmn:itemComponent>
+  </dmn:itemDefinition>
+  <dmn:itemDefinition id="_6A11EF7F-4D5E-4836-830F-E6B7D1773A90" name="tItems" isCollection="true">
+    <dmn:typeRef>tLineItem</dmn:typeRef>
+  </dmn:itemDefinition>
+  <dmn:inputData id="_AD8467BD-8D60-4620-8B45-F888F8146367" name="Movements">
+    <dmn:extensionElements/>
+    <dmn:variable id="_C2E76E1B-9E77-4F5B-B3C3-619E3BC7A218" name="Movements" typeRef="tItems"/>
+  </dmn:inputData>
+  <dmn:decision id="_BC37F34C-1CF8-4420-A63A-EFBD17CD45AF" name="taxed">
+    <dmn:extensionElements/>
+    <dmn:variable id="_67AF4087-2A17-46BD-9720-75B24BBB1AA0" name="taxed" typeRef="tItems"/>
+    <dmn:informationRequirement id="_A3935466-7869-4B30-9179-698A5D8BD4D7">
+      <dmn:requiredInput href="#_AD8467BD-8D60-4620-8B45-F888F8146367"/>
+    </dmn:informationRequirement>
+    <dmn:knowledgeRequirement id="_7570353B-A54D-4B75-B85D-2425C80F8115">
+      <dmn:requiredKnowledge href="#_99866DB7-7975-4857-BA65-4D22E27A1A36"/>
+    </dmn:knowledgeRequirement>
+    <dmn:literalExpression id="_85A67374-0589-4BB0-B5A8-46E0E52AAACF">
+      <dmn:text>for i in Movements return context put(i, "tax", tax(i))</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmn:businessKnowledgeModel id="_99866DB7-7975-4857-BA65-4D22E27A1A36" name="tax">
+    <dmn:extensionElements/>
+    <dmn:variable id="_248D252C-A0BF-4F0F-A86D-46DE8A6AFF42" name="tax" typeRef="number"/>
+    <dmn:encapsulatedLogic id="_B1DEA8BA-73FE-4264-93D3-797710926E15" kind="FEEL">
+      <dmn:formalParameter id="_D35B140E-8772-41AC-9091-43C3D8E97FD0" name="instrument" typeRef="tLineItem"/>
+      <dmn:context id="_3808022A-DDB8-4F43-A569-446A0AFF6FFC">
+        <dmn:contextEntry>
+          <dmn:variable id="_A369BC38-6514-4E43-B31F-B97CB34767ED" name="plus" typeRef="number"/>
+          <dmn:literalExpression id="_39E52E27-2B88-41EB-BE21-FE742E015BD7">
+            <dmn:text>max(instrument.exit - instrument.entry, 0)</dmn:text>
+          </dmn:literalExpression>
+        </dmn:contextEntry>
+        <dmn:contextEntry>
+          <dmn:literalExpression id="_6247FF6C-A654-4AD0-9DF2-F201E0C1CDF8">
+            <dmn:text>if instrument.type = "Gov Bond" then 0.125*plus else 0.26*plus</dmn:text>
+          </dmn:literalExpression>
+        </dmn:contextEntry>
+      </dmn:context>
+    </dmn:encapsulatedLogic>
+  </dmn:businessKnowledgeModel>
+  <dmn:decision id="_A59F8280-0041-4E06-AF15-9FAD8E1CCA3C" name="minus">
+    <dmn:extensionElements/>
+    <dmn:variable id="_5239E819-C635-483E-8418-F8BDC418FAFD" name="minus" typeRef="number"/>
+    <dmn:informationRequirement id="_60B97531-40B0-4099-A440-5B4492FBF3A7">
+      <dmn:requiredInput href="#_AD8467BD-8D60-4620-8B45-F888F8146367"/>
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="_0E3F59BE-4DE4-4826-8FD4-6C0930ED7BF5">
+      <dmn:text>sum(for i in Movements return min(i.exit-i.entry, 0))</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmn:decision id="_844C1930-2314-48CB-A866-C57C0FE02C6A" name="capital gain tax">
+    <dmn:extensionElements/>
+    <dmn:variable id="_6D96A461-4DA0-4535-BFCB-D6D54DF817A4" name="capital gain tax" typeRef="number"/>
+    <dmn:informationRequirement id="_468344B4-2C3B-4147-87BC-B5E473A27BDE">
+      <dmn:requiredDecision href="#_BC37F34C-1CF8-4420-A63A-EFBD17CD45AF"/>
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="_9187DEFB-E0FA-43CC-A1AE-9ADED5E6CD89">
+      <dmn:text>sum( append(for i in taxed[type="ETF"] return i.tax, 0) )</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmn:decision id="_633A635D-8CF0-448D-8C4A-12F11C6717B5" name="different gain tax">
+    <dmn:extensionElements/>
+    <dmn:variable id="_1A4D711D-559C-4A29-80A7-5FE46CBEE30C" name="different gain tax" typeRef="number"/>
+    <dmn:informationRequirement id="_5254079E-94DB-43E4-8AC9-C8627AE790BF">
+      <dmn:requiredDecision href="#_BC37F34C-1CF8-4420-A63A-EFBD17CD45AF"/>
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="_73A5241F-0466-48A8-B81C-2EC3AEFBAF6D">
+      <dmn:text>sum( append(for i in taxed[type in ["Stock", "Bond", "Gov Bond"]] return i.tax, 0) )</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmn:decision id="_D41503B7-57B7-4F80-80D2-8C4203EF3239" name="total tax">
+    <dmn:extensionElements/>
+    <dmn:variable id="_903F76C4-3DF2-44D5-8C5C-7480829B66C7" name="total tax" typeRef="number"/>
+    <dmn:informationRequirement id="_34CC646F-934E-4669-BB26-1212354D7FA5">
+      <dmn:requiredDecision href="#_A59F8280-0041-4E06-AF15-9FAD8E1CCA3C"/>
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="_BD53BE70-B144-48F3-A167-EAC0AED5E81F">
+      <dmn:requiredDecision href="#_633A635D-8CF0-448D-8C4A-12F11C6717B5"/>
+    </dmn:informationRequirement>
+    <dmn:informationRequirement id="_CF3DF0E4-8661-42A7-BDA4-C183150CE5CA">
+      <dmn:requiredDecision href="#_844C1930-2314-48CB-A866-C57C0FE02C6A"/>
+    </dmn:informationRequirement>
+    <dmn:literalExpression id="_EC957467-849B-4AAC-8C31-F62F8D885507">
+      <dmn:text>capital gain tax + ( max( different gain tax + minus, 0))</dmn:text>
+    </dmn:literalExpression>
+  </dmn:decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram id="_4CB1D486-822F-48C1-8535-AAEB994CA74A" name="DRG">
+      <di:extension>
+        <kie:ComponentsWidthsExtension>
+          <kie:ComponentWidths dmnElementRef="_85A67374-0589-4BB0-B5A8-46E0E52AAACF">
+            <kie:width>542</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_3808022A-DDB8-4F43-A569-446A0AFF6FFC">
+            <kie:width>50</kie:width>
+            <kie:width>100</kie:width>
+            <kie:width>513</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_39E52E27-2B88-41EB-BE21-FE742E015BD7">
+            <kie:width>513</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_6247FF6C-A654-4AD0-9DF2-F201E0C1CDF8">
+            <kie:width>513</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_B1DEA8BA-73FE-4264-93D3-797710926E15">
+            <kie:width>50</kie:width>
+            <kie:width>683</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_0E3F59BE-4DE4-4826-8FD4-6C0930ED7BF5">
+            <kie:width>429</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_9187DEFB-E0FA-43CC-A1AE-9ADED5E6CD89">
+            <kie:width>754</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_73A5241F-0466-48A8-B81C-2EC3AEFBAF6D">
+            <kie:width>898</kie:width>
+          </kie:ComponentWidths>
+          <kie:ComponentWidths dmnElementRef="_EC957467-849B-4AAC-8C31-F62F8D885507">
+            <kie:width>698</kie:width>
+          </kie:ComponentWidths>
+        </kie:ComponentsWidthsExtension>
+      </di:extension>
+      <dmndi:DMNShape id="dmnshape-drg-_AD8467BD-8D60-4620-8B45-F888F8146367" dmnElementRef="_AD8467BD-8D60-4620-8B45-F888F8146367" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="241" y="289" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-drg-_BC37F34C-1CF8-4420-A63A-EFBD17CD45AF" dmnElementRef="_BC37F34C-1CF8-4420-A63A-EFBD17CD45AF" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="407" y="290" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-drg-_99866DB7-7975-4857-BA65-4D22E27A1A36" dmnElementRef="_99866DB7-7975-4857-BA65-4D22E27A1A36" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="406" y="392" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-drg-_A59F8280-0041-4E06-AF15-9FAD8E1CCA3C" dmnElementRef="_A59F8280-0041-4E06-AF15-9FAD8E1CCA3C" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="407" y="188" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-drg-_844C1930-2314-48CB-A866-C57C0FE02C6A" dmnElementRef="_844C1930-2314-48CB-A866-C57C0FE02C6A" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="559" y="334" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-drg-_633A635D-8CF0-448D-8C4A-12F11C6717B5" dmnElementRef="_633A635D-8CF0-448D-8C4A-12F11C6717B5" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="559" y="252" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNShape id="dmnshape-drg-_D41503B7-57B7-4F80-80D2-8C4203EF3239" dmnElementRef="_D41503B7-57B7-4F80-80D2-8C4203EF3239" isCollapsed="false">
+        <dmndi:DMNStyle>
+          <dmndi:FillColor red="255" green="255" blue="255"/>
+          <dmndi:StrokeColor red="0" green="0" blue="0"/>
+          <dmndi:FontColor red="0" green="0" blue="0"/>
+        </dmndi:DMNStyle>
+        <dc:Bounds x="711" y="188" width="100" height="50"/>
+        <dmndi:DMNLabel/>
+      </dmndi:DMNShape>
+      <dmndi:DMNEdge id="dmnedge-drg-_A3935466-7869-4B30-9179-698A5D8BD4D7-AUTO-SOURCE-AUTO-TARGET" dmnElementRef="_A3935466-7869-4B30-9179-698A5D8BD4D7">
+        <di:waypoint x="291" y="289"/>
+        <di:waypoint x="457" y="340"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_7570353B-A54D-4B75-B85D-2425C80F8115" dmnElementRef="_7570353B-A54D-4B75-B85D-2425C80F8115">
+        <di:waypoint x="456" y="417"/>
+        <di:waypoint x="457" y="315"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_60B97531-40B0-4099-A440-5B4492FBF3A7-AUTO-TARGET" dmnElementRef="_60B97531-40B0-4099-A440-5B4492FBF3A7">
+        <di:waypoint x="341" y="314"/>
+        <di:waypoint x="457" y="238"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_468344B4-2C3B-4147-87BC-B5E473A27BDE-AUTO-SOURCE-AUTO-TARGET" dmnElementRef="_468344B4-2C3B-4147-87BC-B5E473A27BDE">
+        <di:waypoint x="457" y="290"/>
+        <di:waypoint x="609" y="384"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_5254079E-94DB-43E4-8AC9-C8627AE790BF-AUTO-SOURCE-AUTO-TARGET" dmnElementRef="_5254079E-94DB-43E4-8AC9-C8627AE790BF">
+        <di:waypoint x="457" y="290"/>
+        <di:waypoint x="609" y="302"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_34CC646F-934E-4669-BB26-1212354D7FA5-AUTO-SOURCE-AUTO-TARGET" dmnElementRef="_34CC646F-934E-4669-BB26-1212354D7FA5">
+        <di:waypoint x="457" y="188"/>
+        <di:waypoint x="761" y="238"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_BD53BE70-B144-48F3-A167-EAC0AED5E81F" dmnElementRef="_BD53BE70-B144-48F3-A167-EAC0AED5E81F">
+        <di:waypoint x="609" y="277"/>
+        <di:waypoint x="761" y="213"/>
+      </dmndi:DMNEdge>
+      <dmndi:DMNEdge id="dmnedge-drg-_CF3DF0E4-8661-42A7-BDA4-C183150CE5CA" dmnElementRef="_CF3DF0E4-8661-42A7-BDA4-C183150CE5CA">
+        <di:waypoint x="609" y="359"/>
+        <di:waypoint x="761" y="213"/>
+      </dmndi:DMNEdge>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</dmn:definitions>
